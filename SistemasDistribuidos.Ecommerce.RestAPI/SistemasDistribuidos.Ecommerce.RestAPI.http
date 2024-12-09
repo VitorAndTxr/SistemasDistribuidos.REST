@@ -1,0 +1,6 @@
+@SistemasDistribuidos.Ecommerce.RestAPI_HostAddress = http://localhost:5285
+
+GET {{SistemasDistribuidos.Ecommerce.RestAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

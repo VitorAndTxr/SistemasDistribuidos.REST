@@ -1,0 +1,6 @@
+@SistemasDistribuidos.Ecommerce.Notificacao_HostAddress = http://localhost:5067
+
+GET {{SistemasDistribuidos.Ecommerce.Notificacao_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
