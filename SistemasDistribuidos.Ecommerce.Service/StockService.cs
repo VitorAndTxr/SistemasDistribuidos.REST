@@ -1,21 +1,62 @@
-﻿using SistemasDistribuidos.Ecommerce.Domain.Entity;
+﻿using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
+using SistemasDistribuidos.Ecommerce.Domain.Entity;
 using SistemasDistribuidos.Ecommerce.Service.Interface;
+using System.Text;
+using RabbitMQ.Client.Events;
 
 namespace SistemasDistribuidos.Ecommerce.Service
 {
-    public class StockService:IStockService
+    public class StockService: RabbitMQTopicService,IStockService
     {
+        private readonly IConfiguration _configuration;
         private List<Product> stock = InitStock();
 
-        public StockService()
+        public StockService(IConfiguration configuration):base(configuration)
         {
-            
+            _configuration = configuration;
         }
 
         public List<Product> GetProductsInStock()
         {
             return stock.Where(x => x.Stock > 0).ToList();
         }
+        public async Task HandleListenCreatedBuyRequest(object model, BasicDeliverEventArgs ea)
+        {
+            var body = ea.Body.ToArray();
+            var message = Encoding.UTF8.GetString(body);
+            var routingKey = ea.RoutingKey;
+            Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
+            throw new NotImplementedException();
+        }
+
+        public async Task HandleListenDeletedBuyRequest(object model, BasicDeliverEventArgs ea)
+        {
+            var body = ea.Body.ToArray();
+            var message = Encoding.UTF8.GetString(body);
+            var routingKey = ea.RoutingKey;
+            Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
+            throw new NotImplementedException();
+        }
+
+        #region BuyRequestListeners
+
+        public async Task ListenCreatedBuyRequest(string topicNameConfig)
+        {
+            await CreateListener(topicNameConfig, async (model, ea) =>
+            {
+                HandleListenCreatedBuyRequest(model, ea).Wait();
+            });
+        }
+        public async Task ListenDeletedBuyRequest(string topicNameConfig)
+        {
+            await CreateListener(topicNameConfig, async (model, ea) =>
+            {
+                HandleListenDeletedBuyRequest(model, ea).Wait();
+            });
+        }
+
+        #endregion
 
         #region InitStock
         private static List<Product> InitStock()
@@ -65,5 +106,14 @@ namespace SistemasDistribuidos.Ecommerce.Service
             };
         }
         #endregion
+    }
+
+    public class PaymentService
+    {
+        private readonly IConfiguration _configuration;
+        public PaymentService(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
     }
 }

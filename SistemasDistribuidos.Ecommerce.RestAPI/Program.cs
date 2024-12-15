@@ -1,9 +1,14 @@
+using SistemasDistribuidos.Ecommerce.Service;
+using SistemasDistribuidos.Ecommerce.Service.Interface;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IEcomerceService, EcomerceService>();
 
 var app = builder.Build();
 
@@ -18,9 +23,10 @@ app.UseHttpsRedirection();
 
 #region Produtos
 
-app.MapGet("/produtos", () =>
+app.MapGet("/produtos", (IEcomerceService ecomerceService) =>
 {
-
+    var productsInStock = ecomerceService.GetProductsInStock();
+    return Results.Ok(productsInStock);
 })
 .WithName("Buscar Produtos Disponíveis")
 .WithOpenApi();
