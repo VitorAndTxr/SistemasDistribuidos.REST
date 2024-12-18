@@ -19,7 +19,15 @@ internal class Program
         // Register the StockService as a dependency
         builder.Services.AddSingleton<IStockService, StockService>();
 
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+        var stockService = new StockService(configuration);
+
+
         var app = builder.Build();
+        stockService.ListenCreatedBuyRequest();
+        stockService.ListenDeletedBuyRequest();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

@@ -9,5 +9,6 @@ namespace SistemasDistribuidos.Ecommerce.Service.Interface
         void HandleCreateBuyRequest(BuyRequestPayload payload);
         List<BuyRequestViewModel> GetUserBuyRequestList(string userId);
         void HandlePaymentRequestResponse(BuyRequestViewModel payload);
+        void HandleDeleteBuyRequest(Guid buyRequestId);
     } 
 }

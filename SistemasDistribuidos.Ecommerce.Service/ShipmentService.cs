@@ -1,5 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using RabbitMQ.Client.Events;
+using SistemasDistribuidos.Ecommerce.Domain.Enum;
+using SistemasDistribuidos.Ecommerce.Domain.ViewModel;
+using System.Text;
 
 namespace SistemasDistribuidos.Ecommerce.Service
 {
@@ -13,13 +17,21 @@ namespace SistemasDistribuidos.Ecommerce.Service
 
         public async Task HandleListenApprovedPaymentEvent(object model, BasicDeliverEventArgs ea)
         {
-            throw new NotImplementedException();
+            var body = ea.Body.ToArray();
+
+            var message = Encoding.UTF8.GetString(body);
+
+            var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(message);
+
+            payload.Status = BuyRequestStatusEnum.Shipped;
+
+            await Publish("ShippedRequestQueueName", JsonConvert.SerializeObject(payload));
         }
 
         #region Listeners
-        public async Task ListenApprovedPaymentEvent(string topicNameConfig)
+        public async Task ListenApprovedPaymentEvent()
         {
-            await CreateListener(topicNameConfig, async (model, ea) =>
+            await CreateListener("ApprovedPaymentQueueName", async (model, ea) =>
             {
                 HandleListenApprovedPaymentEvent(model, ea).Wait();
             });

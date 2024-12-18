@@ -103,6 +103,10 @@ namespace SistemasDistribuidos.Ecommerce.Service
                     throw new Exception($"Buy request with ID {buyRequestId} not found");
                 }
 
+                RemoveBuyRequest(buyRequestId);
+
+                buyRequest.Status = BuyRequestStatusEnum.Deleted;
+
                 SaveBuyRequest(buyRequest);
 
                 await Publish("DeletedBuyRequestQueueName", JsonConvert.SerializeObject(buyRequest));
@@ -285,9 +289,9 @@ namespace SistemasDistribuidos.Ecommerce.Service
             }
         }
 
-        public async Task ListenShippedRequestEvent(string topicNameConfig)
+        public async Task ListenShippedRequestEvent()
         {
-            await CreateListener(topicNameConfig, async (model, ea) =>
+            await CreateListener("ShippedRequestQueueName", async (model, ea) =>
             {
                 HandleListenShippedRequestEvent(model, ea).Wait();
             });
@@ -297,9 +301,14 @@ namespace SistemasDistribuidos.Ecommerce.Service
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            var routingKey = ea.RoutingKey;
-            Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
-            throw new NotImplementedException();
+
+            var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(message);
+
+            payload.Status = BuyRequestStatusEnum.Shipped;
+
+            RemoveBuyRequest(payload.Id);
+
+            SaveBuyRequest(payload);
         }
     }
 }

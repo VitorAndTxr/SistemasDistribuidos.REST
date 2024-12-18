@@ -8,7 +8,7 @@ var config = new ConfigurationBuilder()
 
 ShipmentService shipmentService = new ShipmentService(config);
 
-shipmentService.ListenApprovedPaymentEvent("ApprovedPaymentQueue").Wait();
+shipmentService.ListenApprovedPaymentEvent();
 
 while (true)
 {

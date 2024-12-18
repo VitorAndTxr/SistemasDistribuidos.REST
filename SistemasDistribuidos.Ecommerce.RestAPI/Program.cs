@@ -54,38 +54,6 @@ internal class Program
 
         #endregion
 
-        #region Carrinho
-
-        app.MapGet("/carrinho", () =>
-        {
-
-        }).
-        WithName("Buscar Carrinho")
-        .WithOpenApi();
-
-        app.MapPut("/carrinho", () =>
-        {
-
-        }).
-        WithName("Atualizar Carrinho")
-        .WithOpenApi();
-
-        app.MapPost("/carrinho", () =>
-        {
-
-        }).
-        WithName("Adicionar Produto ao Carrinho")
-        .WithOpenApi();
-
-        app.MapDelete("/carrinho", () =>
-        {
-
-        }).
-        WithName("Remover Produto do Carrinho")
-        .WithOpenApi();
-
-        #endregion
-
         #region Pedido
 
         app.MapGet("/pedidos/{userId}", (IEcommerceService ecomerceService, string userId) =>
@@ -114,6 +82,14 @@ internal class Program
         .Accepts(typeof(BuyRequestPayload), "application/json")
         .WithOpenApi();
 
+        app.MapDelete("/buy/{id}", (IEcommerceService ecomerceService, Guid id) =>
+        {
+            ecomerceService.HandleDeleteBuyRequest(id);
+            return Results.Ok();
+        })
+        .WithName("Deletar Pedido")
+        .WithOpenApi();
+
         app.MapPost("payment/{id}", (IEcommerceService ecomerceService, Guid id , HttpRequest request) =>
         {
             var requestBody = request.Body;
@@ -137,6 +113,13 @@ internal class Program
 
         #endregion
 
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var service = new EcomerceService(configuration);
+
+        service.ListenShippedRequestEvent();
         app.Run();
     }
 }

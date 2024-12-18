@@ -5,6 +5,7 @@
         PendingPayment,
         Shipped,
         PaymentDenied,
-        PaymentApproved
+        PaymentApproved,
+        Deleted
     }
 }
