@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using SistemasDistribuidos.Ecommerce.Domain.Payload;
+using SistemasDistribuidos.Ecommerce.Domain.ViewModel;
 using SistemasDistribuidos.Ecommerce.Service;
 using SistemasDistribuidos.Ecommerce.Service.Interface;
 using System.IO;
@@ -103,12 +105,31 @@ internal class Program
                 // Agora você tem o conteúdo do Stream como uma string na variável "content"
                 var payload = JsonConvert.DeserializeObject<BuyRequestPayload>(content);
 
-                ecomerceService.HandleBuyRequest(payload);
+                ecomerceService.HandleCreateBuyRequest(payload);
             }
             return Results.Ok();
 
         }).
         WithName("Realizar Pedido")
+        .Accepts(typeof(BuyRequestPayload), "application/json")
+        .WithOpenApi();
+
+        app.MapPost("payment/{id}", (IEcommerceService ecomerceService, Guid id , HttpRequest request) =>
+        {
+            var requestBody = request.Body;
+
+            using (StreamReader reader = new StreamReader(requestBody))
+            {
+                string content = reader.ReadToEndAsync().Result;
+                // Agora você tem o conteúdo do Stream como uma string na variável "content"
+                var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(content);
+
+                ecomerceService.HandlePaymentRequestResponse(payload);
+            }
+            return Results.Ok();
+
+        })
+        .WithName("Confirmar pagamentos")
         .Accepts(typeof(BuyRequestPayload), "application/json")
         .WithOpenApi();
 

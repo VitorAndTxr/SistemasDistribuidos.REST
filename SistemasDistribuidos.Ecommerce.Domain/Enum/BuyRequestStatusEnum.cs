@@ -2,8 +2,9 @@
 {
     public enum BuyRequestStatusEnum
     {
-        Pending,
-        Approved,
-        Denied
+        PendingPayment,
+        Shipped,
+        PaymentDenied,
+        PaymentApproved
     }
 }

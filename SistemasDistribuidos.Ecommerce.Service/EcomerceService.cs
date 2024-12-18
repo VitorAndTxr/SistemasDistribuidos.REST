@@ -7,6 +7,7 @@ using System.Net.Http.Json;
 using SistemasDistribuidos.Ecommerce.Domain.ViewModel;
 using SistemasDistribuidos.Ecommerce.Domain.Enum;
 using Newtonsoft.Json;
+using SistemasDistribuidos.Ecommerce.Domain.Payload;
 
 namespace SistemasDistribuidos.Ecommerce.Service
 {
@@ -15,6 +16,9 @@ namespace SistemasDistribuidos.Ecommerce.Service
         private readonly IConfiguration _configuration;
 
         private readonly string _stockServiceUrl = "http://localhost:5005";
+
+        private readonly string _buyRequestsFilePath = "buyRequests.json";
+
         public EcomerceService(IConfiguration configuration):base(configuration)
         {
             _configuration = configuration;
@@ -58,24 +62,73 @@ namespace SistemasDistribuidos.Ecommerce.Service
 
         }
 
-        // ...
-
-        public void HandleBuyRequest(BuyRequestPayload payload)
+        public async void HandleCreateBuyRequest(BuyRequestPayload payload)
         {
             try
             {
                 ValidateBuyRequest(payload);
 
+                var id = Guid.NewGuid();
+
                 BuyRequestViewModel buyRequest = new BuyRequestViewModel
                 {
-                    Id = Guid.NewGuid(),
+                    Id = id,
                     UserId = payload.UserId,
-                    Status = BuyRequestStatusEnum.Pending,
-                    Products = payload.Items
+                    WebhookURL=$"https://localhost:5000/payment/{id}",
+                    Status = BuyRequestStatusEnum.PendingPayment,
+                    Products = payload.Items,
+                    TotalPrice = payload.Items.Sum(x => x.Price * x.Stock)
+                
                 };
 
-                // Convert the buyRequest object to JSON
                 SaveBuyRequest(buyRequest);
+
+                await Publish("CreatedBuyRequestQueueName", JsonConvert.SerializeObject(buyRequest));
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async void HandleDeleteBuyRequest(Guid buyRequestId)
+        {
+            try
+            {
+
+                BuyRequestViewModel buyRequest = GetBuyRequestById(buyRequestId);
+
+                if(buyRequest == null)
+                {
+                    throw new Exception($"Buy request with ID {buyRequestId} not found");
+                }
+
+                SaveBuyRequest(buyRequest);
+
+                await Publish("DeletedBuyRequestQueueName", JsonConvert.SerializeObject(buyRequest));
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async void HandlePaymentRequestResponse(BuyRequestViewModel payload)
+        {
+            try
+            {
+                RemoveBuyRequest(payload.Id);
+
+                SaveBuyRequest(payload);
+
+                if(payload.Status == BuyRequestStatusEnum.PaymentApproved)
+                {
+                    await Publish("ApprovedPaymentQueueName", JsonConvert.SerializeObject(payload));
+                }
+                else if(payload.Status == BuyRequestStatusEnum.PaymentDenied)
+                {
+                    await Publish("DeniedPaymentQueueName", JsonConvert.SerializeObject(payload));
+                }
             }
             catch (Exception)
             {
@@ -88,14 +141,11 @@ namespace SistemasDistribuidos.Ecommerce.Service
 
             try
             {
-                // Specify the path to the JSON file
-                string filePath = "buyRequests.json";
-
                 // Check if the file exists
-                if (File.Exists(filePath))
+                if (File.Exists(_buyRequestsFilePath))
                 {
                     // Read the existing JSON data from the file
-                    string existingJson = File.ReadAllText(filePath);
+                    string existingJson = File.ReadAllText(_buyRequestsFilePath);
 
                     // Deserialize the existing JSON data into a list of BuyRequesViewModel objects
                     List<BuyRequestViewModel> existingBuyRequests = JsonConvert.DeserializeObject<List<BuyRequestViewModel>>(existingJson);
@@ -116,18 +166,43 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 throw;
             }
         }
-        private static void SaveBuyRequest(BuyRequestViewModel buyRequest)
+
+        public BuyRequestViewModel GetBuyRequestById(Guid id)
+        {
+
+            try
+            {
+                // Check if the file exists
+                if (File.Exists(_buyRequestsFilePath))
+                {
+                    // Read the existing JSON data from the file
+                    string existingJson = File.ReadAllText(_buyRequestsFilePath);
+
+                    // Deserialize the existing JSON data into a list of BuyRequesViewModel objects
+                    List<BuyRequestViewModel> existingBuyRequests = JsonConvert.DeserializeObject<List<BuyRequestViewModel>>(existingJson);
+
+                    // Filter the buy requests to only include those for the specified user
+
+                    return existingBuyRequests.FirstOrDefault(x => x.Id == id);
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        private void SaveBuyRequest(BuyRequestViewModel buyRequest)
         {
             string json = JsonConvert.SerializeObject(buyRequest);
 
-            // Specify the path to the JSON file
-            string filePath = "buyRequests.json";
 
             // Check if the file exists
-            if (File.Exists(filePath))
+            if (File.Exists(_buyRequestsFilePath))
             {
                 // Read the existing JSON data from the file
-                string existingJson = File.ReadAllText(filePath);
+                string existingJson = File.ReadAllText(_buyRequestsFilePath);
 
                 // Deserialize the existing JSON data into a list of BuyRequesViewModel objects
                 List<BuyRequestViewModel> existingBuyRequests = JsonConvert.DeserializeObject<List<BuyRequestViewModel>>(existingJson);
@@ -139,7 +214,7 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 string updatedJson = JsonConvert.SerializeObject(existingBuyRequests);
 
                 // Write the updated JSON data to the file
-                File.WriteAllText(filePath, updatedJson);
+                File.WriteAllText(_buyRequestsFilePath, updatedJson);
             }
             else
             {
@@ -150,7 +225,43 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 string newJson = JsonConvert.SerializeObject(buyRequests);
 
                 // Write the JSON data to the file
-                File.WriteAllText(filePath, newJson);
+                File.WriteAllText(_buyRequestsFilePath, newJson);
+            }
+        }
+
+        private void RemoveBuyRequest(Guid id)
+        {
+            try
+            {
+                // Check if the file exists
+                if (File.Exists(_buyRequestsFilePath))
+                {
+                    // Read the existing JSON data from the file
+                    string existingJson = File.ReadAllText(_buyRequestsFilePath);
+
+                    // Deserialize the existing JSON data into a list of BuyRequesViewModel objects
+                    List<BuyRequestViewModel> existingBuyRequests = JsonConvert.DeserializeObject<List<BuyRequestViewModel>>(existingJson);
+
+                    // Find the buy request with the specified ID
+                    BuyRequestViewModel buyRequestToRemove = existingBuyRequests.FirstOrDefault(x => x.Id == id);
+
+                    // Check if the buy request exists
+                    if (buyRequestToRemove != null)
+                    {
+                        // Remove the buy request from the list
+                        existingBuyRequests.Remove(buyRequestToRemove);
+
+                        // Convert the updated list back to JSON
+                        string updatedJson = JsonConvert.SerializeObject(existingBuyRequests);
+
+                        // Write the updated JSON data to the file
+                        File.WriteAllText(_buyRequestsFilePath, updatedJson);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
@@ -190,19 +301,5 @@ namespace SistemasDistribuidos.Ecommerce.Service
             Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
             throw new NotImplementedException();
         }
-    }
-
-    public class CartService: ICartService
-    {
-        public CartService()
-        {
-            
-        }
-
-        public Guid CreateCart()
-        {
-            throw new NotImplementedException();
-        }
-
     }
 }

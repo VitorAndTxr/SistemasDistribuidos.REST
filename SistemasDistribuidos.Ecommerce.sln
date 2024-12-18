@@ -13,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemasDistribuidos.Ecomme
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemasDistribuidos.Ecommerce.Pagamentos", "SistemasDistribuidos.Ecommerce.Pagamentos\SistemasDistribuidos.Ecommerce.Pagamentos.csproj", "{A3A519CE-42B5-48F0-B6D9-084073705DF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemasDistribuidos.Ecommerce.Service", "SistemasDistribuidos.Ecommerce.Service\SistemasDistribuidos.Ecommerce.Service.csproj", "{4A3BFC85-5F35-4C4A-9B55-83B8906B8356}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemasDistribuidos.Ecommerce.Service", "SistemasDistribuidos.Ecommerce.Service\SistemasDistribuidos.Ecommerce.Service.csproj", "{4A3BFC85-5F35-4C4A-9B55-83B8906B8356}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemasDistribuidos.Ecommerce.Domain", "SistemasDistribuidos.Ecommerce.Domain\SistemasDistribuidos.Ecommerce.Domain.csproj", "{665050EB-6908-4140-8942-27CCC4C20212}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SistemasDistribuidos.Ecommerce.Domain", "SistemasDistribuidos.Ecommerce.Domain\SistemasDistribuidos.Ecommerce.Domain.csproj", "{665050EB-6908-4140-8942-27CCC4C20212}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemasDistribuidos.Ecommerce.Provider", "SistemasDistribuidos.Ecommerce.Provider\SistemasDistribuidos.Ecommerce.Provider.csproj", "{06DE3A31-4F6F-4D61-8AEE-ED0EB0DB83F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{665050EB-6908-4140-8942-27CCC4C20212}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{665050EB-6908-4140-8942-27CCC4C20212}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{665050EB-6908-4140-8942-27CCC4C20212}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06DE3A31-4F6F-4D61-8AEE-ED0EB0DB83F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06DE3A31-4F6F-4D61-8AEE-ED0EB0DB83F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06DE3A31-4F6F-4D61-8AEE-ED0EB0DB83F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06DE3A31-4F6F-4D61-8AEE-ED0EB0DB83F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

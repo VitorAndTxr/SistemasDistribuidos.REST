@@ -1,12 +1,22 @@
+using SistemasDistribuidos.Ecommerce.Service;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -15,30 +25,42 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
+var notificationService = new NotificationService(configuration);
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
-app.MapGet("/weatherforecast", () =>
+notificationService.ListenCreatedBuyRequest();
+notificationService.ListenApprovedPaymentEvent();
+notificationService.ListenRepprovedPaymentEvent();
+
+notificationService.ListenShippedRequestEvent();
+
+
+
+app.MapGet("/sse", async (HttpContext context) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    context.Response.Headers.Add("Cache-Control", "no-cache");
+    context.Response.Headers.Add("Content-Type", "text/event-stream");
+
+    var reader = SseMessageChannel.MessageChannel.Reader;
+
+    // Ler do canal até a conexão ser interrompida ou o canal ser completo.
+    while (!context.RequestAborted.IsCancellationRequested)
+    {
+        if (await reader.WaitToReadAsync(context.RequestAborted))
+        {
+            while (reader.TryRead(out var message))
+            {
+                Console.WriteLine($"Sending message: {message}");
+                await context.Response.WriteAsync($"data: {message}\n\n");
+                await context.Response.Body.FlushAsync();
+            }
+        }
+    }
+});
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

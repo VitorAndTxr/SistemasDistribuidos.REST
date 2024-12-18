@@ -66,6 +66,11 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 };
 
                 await channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+
+                while (true)
+                {
+                    await Task.Delay(1000);
+                }
             });
         }
     }

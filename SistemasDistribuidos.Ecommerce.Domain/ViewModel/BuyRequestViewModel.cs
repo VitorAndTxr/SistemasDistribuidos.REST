@@ -6,9 +6,11 @@ namespace SistemasDistribuidos.Ecommerce.Domain.ViewModel
     {
         public Guid Id { get; set; }
         public string UserId { get; set; }
+        public string WebhookURL { get; set; }
+
         public BuyRequestStatusEnum Status { get; set; }
         public List<ProductViewModel> Products { get; set; } = [];
 
-        public decimal TotalPrice => Products.Sum(p => p.Price);
+        public decimal TotalPrice { get; set; }
     }
 }

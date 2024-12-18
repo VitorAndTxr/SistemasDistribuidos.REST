@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Text;
 
 namespace SistemasDistribuidos.Ecommerce.Service
 {

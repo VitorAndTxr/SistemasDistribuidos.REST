@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SistemasDistribuidos.Ecommerce.Domain\SistemasDistribuidos.Ecommerce.Domain.csproj" />
+    <ProjectReference Include="..\SistemasDistribuidos.Ecommerce.Provider\SistemasDistribuidos.Ecommerce.Provider.csproj" />
   </ItemGroup>
 
 </Project>

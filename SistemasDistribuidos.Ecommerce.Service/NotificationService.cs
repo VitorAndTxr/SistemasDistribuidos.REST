@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Text;
 using RabbitMQ.Client.Events;
+using Newtonsoft.Json;
+using SistemasDistribuidos.Ecommerce.Domain.ViewModel;
 
 namespace SistemasDistribuidos.Ecommerce.Service
 {
@@ -13,73 +15,96 @@ namespace SistemasDistribuidos.Ecommerce.Service
         }
 
 
-        public async Task HandleListenByRequest(object model, BasicDeliverEventArgs ea)
+        public async Task HandleListenBuyRequest(object model, BasicDeliverEventArgs ea)
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            var routingKey = ea.RoutingKey;
-            Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
+            var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(message);
 
-            throw new NotImplementedException();
+            var notification = $"Compra {payload.Id} no valor de {payload.TotalPrice} está aguardando a aprovação do pagamento!";
+
+            SseMessageChannel.MessageChannel.Writer.TryWrite(notification);
+
+            var routingKey = ea.RoutingKey;
+
+            Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
         }
 
         public async Task HandleListenApprovedPaymentEvent(object model, BasicDeliverEventArgs ea)
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
+
+            var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(message);
+
+            var notification = $"Compra {payload.Id} no valor de {payload.TotalPrice} teve o pagamento aprovado!";
+
+            SseMessageChannel.MessageChannel.Writer.TryWrite(notification);
+
             var routingKey = ea.RoutingKey;
             Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
-
-            throw new NotImplementedException();
         }
 
         public async Task HandleListenRepprovedPaymentEvent(object model, BasicDeliverEventArgs ea)
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
+
+            var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(message);
+
+            var notification = $"Compra {payload.Id} no valor de {payload.TotalPrice} teve o pagamento recusado!";
+
+            SseMessageChannel.MessageChannel.Writer.TryWrite(notification);
+
             var routingKey = ea.RoutingKey;
             Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
-            throw new NotImplementedException();
+
         }
 
         public async Task HandleListenShippedRequestEvent(object model, BasicDeliverEventArgs ea)
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
+
+            var payload = JsonConvert.DeserializeObject<BuyRequestViewModel>(message);
+
+            var notification = $"Compra {payload.Id} foi enviada!";
+
+            SseMessageChannel.MessageChannel.Writer.TryWrite(notification);
+
             var routingKey = ea.RoutingKey;
             Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
-            throw new NotImplementedException();
         }
 
         #region Listeners
 
-        public async Task ListenCreatedBuyRequest(string topicNameConfig)
+        public async Task ListenCreatedBuyRequest()
         {
-            await CreateListener(topicNameConfig, async (model, ea) =>
+            await CreateListener("CreatedBuyRequestQueueName", async (model, ea) =>
             {
-                HandleListenByRequest(model,ea).Wait();
+                HandleListenBuyRequest(model,ea).Wait();
             });
         }
 
-        public async Task ListenApprovedPaymentEvent(string topicNameConfig)
+        public async Task ListenApprovedPaymentEvent()
         {
-            await CreateListener(topicNameConfig, async (model, ea) =>
+            await CreateListener("ApprovedPaymentQueueName", async (model, ea) =>
             {
                 HandleListenApprovedPaymentEvent(model, ea).Wait();
             });
         }
 
-        public async Task ListenRepprovedPaymentEvent(string topicNameConfig)
+        public async Task ListenRepprovedPaymentEvent()
         {
-            await CreateListener(topicNameConfig, async (model, ea) =>
+            await CreateListener("DeniedPaymentQueueName", async (model, ea) =>
             {
                 HandleListenRepprovedPaymentEvent(model, ea).Wait();
             });
         }
 
-        public async Task ListenShippedRequestEvent(string topicNameConfig)
+        public async Task ListenShippedRequestEvent()
         {
-            await CreateListener(topicNameConfig, async (model, ea) =>
+            await CreateListener("ShippedRequestQueueName", async (model, ea) =>
             {
                 HandleListenShippedRequestEvent(model, ea).Wait();
             });

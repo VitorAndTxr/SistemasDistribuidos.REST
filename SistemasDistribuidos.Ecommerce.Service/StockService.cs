@@ -4,12 +4,16 @@ using SistemasDistribuidos.Ecommerce.Domain.Entity;
 using SistemasDistribuidos.Ecommerce.Service.Interface;
 using System.Text;
 using RabbitMQ.Client.Events;
+using System.Net.Http.Json;
+using Newtonsoft.Json;
+using SistemasDistribuidos.Ecommerce.Domain.ViewModel;
 
 namespace SistemasDistribuidos.Ecommerce.Service
 {
     public class StockService: RabbitMQTopicService,IStockService
     {
         private readonly IConfiguration _configuration;
+        private readonly static string _stockFilePath = "stock.json";
         private List<Product> stock = InitStock();
 
         public StockService(IConfiguration configuration):base(configuration)
@@ -61,59 +65,79 @@ namespace SistemasDistribuidos.Ecommerce.Service
         #region InitStock
         private static List<Product> InitStock()
         {
-            return new List<Product>
+            try
             {
-                new Product { 
-                    Id = Guid.NewGuid(), 
-                    Name = "Camisa 1",
-                    Description = "Camisa de Algodão",
-                    Image = "https://www.google.com.br",
-                    Price = 50,
-                    Stock = 10
-                },
-                new Product {
-                    Id = Guid.NewGuid(),
-                    Name = "Calça 1",
-                    Description = "Camisa de Algodão",
-                    Image = "https://www.google.com.br",
-                    Price = 70,
-                    Stock = 10
-                },
-                new Product {
-                    Id = Guid.NewGuid(),
-                    Name = "Blusa 1",
-                    Description = "Camisa de Algodão",
-                    Image = "https://www.google.com.br",
-                    Price = 100,
-                    Stock = 10
-                },
-                new Product {
-                    Id = Guid.NewGuid(),
-                    Name = "Jaqueta 1",
-                    Description = "Camisa de Algodão",
-                    Image = "https://www.google.com.br",
-                    Price = 500,
-                    Stock = 10
-                },
-                new Product {
-                    Id = Guid.NewGuid(),
-                    Name = "meia 1",
-                    Description = "Camisa de Algodão",
-                    Image = "https://www.google.com.br",
-                    Price = 5,
-                    Stock = 10
+                if (File.Exists(_stockFilePath))
+                {
+                    // Read the existing JSON data from the file
+                    string existingJson = File.ReadAllText(_stockFilePath);
+
+                    // Deserialize the existing JSON data into a list of BuyRequesViewModel objects
+                    List<Product> stock = JsonConvert.DeserializeObject<List<Product>>(existingJson);
+
+                    // Add the new buyRequest to the existing list
+                    return stock;
                 }
-            };
+                else
+                {
+                    var products = new List<Product>
+                {
+                    new Product {
+                        Id = Guid.NewGuid(),
+                        Name = "Camisa 1",
+                        Description = "Camisa de Algodão",
+                        Image = "https://www.google.com.br",
+                        Price = 50,
+                        Stock = 10
+                    },
+                    new Product {
+                        Id = Guid.NewGuid(),
+                        Name = "Calça 1",
+                        Description = "Camisa de Algodão",
+                        Image = "https://www.google.com.br",
+                        Price = 70,
+                        Stock = 10
+                    },
+                    new Product {
+                        Id = Guid.NewGuid(),
+                        Name = "Blusa 1",
+                        Description = "Camisa de Algodão",
+                        Image = "https://www.google.com.br",
+                        Price = 100,
+                        Stock = 10
+                    },
+                    new Product {
+                        Id = Guid.NewGuid(),
+                        Name = "Jaqueta 1",
+                        Description = "Camisa de Algodão",
+                        Image = "https://www.google.com.br",
+                        Price = 500,
+                        Stock = 10
+                    },
+                    new Product {
+                        Id = Guid.NewGuid(),
+                        Name = "meia 1",
+                        Description = "Camisa de Algodão",
+                        Image = "https://www.google.com.br",
+                        Price = 5,
+                        Stock = 10
+                    }
+                };
+
+                    // Convert the list to JSON
+                    string newJson = JsonConvert.SerializeObject(products);
+
+                    // Write the JSON data to the file
+                    File.WriteAllText(_stockFilePath, newJson);
+
+                    return products;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }   
         }
         #endregion
-    }
-
-    public class PaymentService
-    {
-        private readonly IConfiguration _configuration;
-        public PaymentService(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
     }
 }
