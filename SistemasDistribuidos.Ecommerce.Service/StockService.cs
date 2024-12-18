@@ -65,7 +65,7 @@ namespace SistemasDistribuidos.Ecommerce.Service
             {
                 new Product { 
                     Id = Guid.NewGuid(), 
-                    Name = "Camisa",
+                    Name = "Camisa 1",
                     Description = "Camisa de Algodão",
                     Image = "https://www.google.com.br",
                     Price = 50,
@@ -73,7 +73,7 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 },
                 new Product {
                     Id = Guid.NewGuid(),
-                    Name = "Calça",
+                    Name = "Calça 1",
                     Description = "Camisa de Algodão",
                     Image = "https://www.google.com.br",
                     Price = 70,
@@ -81,7 +81,7 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 },
                 new Product {
                     Id = Guid.NewGuid(),
-                    Name = "Blusa",
+                    Name = "Blusa 1",
                     Description = "Camisa de Algodão",
                     Image = "https://www.google.com.br",
                     Price = 100,
@@ -89,7 +89,7 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 },
                 new Product {
                     Id = Guid.NewGuid(),
-                    Name = "Jaqueta",
+                    Name = "Jaqueta 1",
                     Description = "Camisa de Algodão",
                     Image = "https://www.google.com.br",
                     Price = 500,
@@ -97,7 +97,7 @@ namespace SistemasDistribuidos.Ecommerce.Service
                 },
                 new Product {
                     Id = Guid.NewGuid(),
-                    Name = "meia",
+                    Name = "meia 1",
                     Description = "Camisa de Algodão",
                     Image = "https://www.google.com.br",
                     Price = 5,
